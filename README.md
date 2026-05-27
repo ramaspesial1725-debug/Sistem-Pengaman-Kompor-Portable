@@ -21,6 +21,19 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ---
 
+## 👨‍💻 Tim Pengembang
+
+| No | Nama | NRP | Tugas |
+|----|------|------|------|
+| 1 | Gilang Ramadhan | 2124600001 | 📌 Project Manager |
+| 2 | Rico Ivanada Y.P | 2124600013 | 🎨 UI/UX Designer |
+| 3 | Ardika Purna Atmaja | 2124600003 | 💻 Software Engineer |
+| 4 | Andrey Khusuma Prasetya | 2124600006 | 🧩 3D Designer |
+| 5 | Siti Nur Fadilla | 2124600029 | 🎨 UI/UX Designer |
+| 6 | Hanif Agustama Ikhsan | 2124600027 | 🔧 Hardware Engineer |
+
+---
+
 ## Fitur Sistem
 - Deteksi kebocoran gas LPG menggunakan sensor MQ-6
 - Monitoring suhu menggunakan thermistor NTC 100K
@@ -58,6 +71,3 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ## Diagram Sistem
 > Tambahkan gambar diagram sistem di sini
 
-Contoh:
-```md
-![Diagram Sistem](images/diagram-sistem.png)
