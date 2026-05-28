@@ -37,21 +37,22 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ## Fitur Sistem
 - Deteksi kebocoran gas LPG menggunakan sensor MQ-6
-- Monitoring suhu menggunakan thermistor NTC 100K
+- Monitoring suhu kompor menggunakan sensor LM35
 - Alarm buzzer otomatis saat kondisi bahaya
-- Pemutus aliran gas otomatis menggunakan servo motor
-- Monitoring kondisi sistem secara real-time
-- Sistem keamanan otomatis berbasis Arduino Nano
+- Pemutus aliran gas otomatis menggunakan selenoid
+- Monitoring kondisi sistem secara real-time (LCD & APK Web Base)
+- Sistem keamanan otomatis berbasis Arduino Mega2560
 
 ---
 
 ## Komponen yang Digunakan
-- Arduino Nano
+- Arduino Mega2560
+- ESP8266 ESP-01 Wi-Fi Module
 - Sensor Gas MQ-6
-- Thermistor NTC 100K
-- Servo Motor SG90
+- Sensor Suhu LM35
+- Selenoid
 - Buzzer
-- Power Supply
+- Baterai 18650
 - Kabel Jumper
 - Breadboard / PCB
 - Regulator Tegangan
@@ -60,12 +61,12 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ## Cara Kerja Sistem
 1. Sensor MQ-6 mendeteksi kadar gas LPG di sekitar kompor portable.
-2. Thermistor NTC 100K memonitor suhu tabung gas secara terus-menerus.
-3. Data sensor diproses oleh Arduino Nano.
+2. Sensor Suhu LM35 memonitor suhu tabung gas secara real-time.
+3. Data sensor diproses oleh Arduino.
 4. Jika terdeteksi kebocoran gas atau suhu melebihi batas aman:
    - Buzzer akan aktif sebagai alarm peringatan
    - Servo motor akan menutup aliran gas secara otomatis
-5. Sistem terus melakukan monitoring secara real-time untuk menjaga keamanan pengguna.
+5. Sistem terus melakukan monitoring dengan mengirimkan data sensor secara real-time ke aplikasi yang terhubung dengan perangkat pengguna untuk menjaga keamanan pengguna.
 
 ---
 
