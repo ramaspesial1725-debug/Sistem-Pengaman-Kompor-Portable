@@ -1,3 +1,4 @@
+# SP3S - Smart Portable Stove Safety System
 # Rancang Bangun Sistem Pengaman Otomatis Kebocoran Gas dan Overheat pada Kompor Portable
 
 ## Deskripsi Proyek
