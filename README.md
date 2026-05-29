@@ -49,7 +49,8 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 - Arduino Mega2560
 - ESP8266 ESP-01 Wi-Fi Module
 - Sensor Gas MQ-6
-- Sensor Suhu LM35
+- Sensor Suhu DHT11
+- Relay
 - Selenoid
 - Buzzer
 - Baterai 18650
