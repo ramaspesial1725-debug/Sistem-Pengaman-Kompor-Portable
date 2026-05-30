@@ -2,7 +2,7 @@
 # Rancang Bangun Sistem Pengaman Otomatis Kebocoran Gas dan Overheat pada Kompor Portable
 
 ## Deskripsi Proyek
-Proyek ini merupakan sistem keamanan otomatis pada kompor portable yang dirancang untuk mendeteksi kebocoran gas LPG dan kondisi overheat pada tabung gas secara real-time. Sistem menggunakan sensor gas MQ-6 untuk mendeteksi kebocoran gas serta thermistor NTC 100K untuk memonitor suhu pada area tabung gas.
+Proyek ini merupakan sistem keamanan otomatis pada kompor portable yang dirancang untuk mendeteksi kebocoran gas LPG dan kondisi overheat pada tabung gas secara real-time. Sistem menggunakan sensor gas MQ-6 untuk mendeteksi kebocoran gas serta sensor DHT-11 untuk memonitor suhu pada area tabung gas.
 
 Apabila terdeteksi kebocoran gas atau suhu melebihi batas aman, sistem akan:
 - Mengaktifkan alarm buzzer
@@ -38,7 +38,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ## Fitur Sistem
 - Deteksi kebocoran gas LPG menggunakan sensor MQ-6
-- Monitoring suhu kompor menggunakan sensor LM35
+- Monitoring suhu kompor menggunakan sensor DHT-11
 - Alarm buzzer otomatis saat kondisi bahaya
 - Pemutus aliran gas otomatis menggunakan selenoid
 - Monitoring kondisi sistem secara real-time (LCD & APK Web Base)
@@ -50,7 +50,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 - Arduino Mega2560
 - ESP8266 ESP-01 Wi-Fi Module
 - Sensor Gas MQ-6
-- Sensor Suhu DHT11
+- Sensor Suhu DHT-11
 - Relay
 - Selenoid
 - Buzzer
@@ -63,7 +63,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ## Cara Kerja Sistem
 1. Sensor MQ-6 mendeteksi kadar gas LPG di sekitar kompor portable.
-2. Sensor Suhu LM35 memonitor suhu tabung gas secara real-time.
+2. Sensor Suhu DHT-11 memonitor suhu tabung gas secara real-time.
 3. Data sensor diproses oleh Arduino.
 4. Jika terdeteksi kebocoran gas atau suhu melebihi batas aman:
    - Buzzer akan aktif sebagai alarm peringatan
