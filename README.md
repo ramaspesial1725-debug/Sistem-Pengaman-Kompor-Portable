@@ -23,6 +23,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ---
 
 ## 👨‍💻 Tim Pengembang
+![Tim Pengembang](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Assets/Foto%20Tim/Tim%20Pengembang.jpg)
 
 | No | Nama | NRP | Tugas |
 |----|------|------|------|
