@@ -25,14 +25,14 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ## 👨‍💻 Tim Pengembang
 ![Tim Pengembang](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Assets/Foto%20Tim/Tim%20Pengembang.jpg)
 
-| No | Nama | NRP | Tugas |
-|----|------|------|------|
-| 1 | Gilang Ramadhan | 2124600001 | 📌 Project Manager |
-| 2 | Rico Ivanada Y.P | 2124600013 | 🎨 UI/UX Designer |
-| 3 | Ardika Purna Atmaja | 2124600003 | 💻 Software Engineer |
-| 4 | Andrey Khusuma Prasetya | 2124600006 | 🧩 3D Designer |
-| 5 | Siti Nur Fadilla | 2124600029 | 🎨 UI/UX Designer |
-| 6 | Hanif Agustama Ikhsan | 2124600027 | 🔧 Hardware Engineer |
+| No | Nama | NRP | Tugas | Akun |
+|----|------|------|------|------|
+| 1 | Gilang Ramadhan | 2124600001 | 📌 Project Manager | https://github.com/ramaspesial1725-debug |
+| 2 | Rico Ivanada Y.P | 2124600013 | 🎨 UI/UX Designer | https://github.com/ricoivanadayp |
+| 3 | Ardika Purna Atmaja | 2124600003 | 💻 Software Engineer | https://github.com/ArdikaPA |
+| 4 | Andrey Khusuma Prasetya | 2124600006 | 🧩 3D Designer | https://github.com/andreykhusuma30-ai |
+| 5 | Siti Nur Fadilla | 2124600029 | 🎨 UI/UX Designer | https://github.com/dillaf836 |
+| 6 | Hanif Agustama Ikhsan | 2124600027 | 🔧 Hardware Engineer | https://github.com/hanifikhsan13 |
 
 ---
 
