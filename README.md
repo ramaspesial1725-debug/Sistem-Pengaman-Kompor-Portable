@@ -6,7 +6,7 @@ Proyek ini merupakan sistem keamanan otomatis pada kompor portable yang dirancan
 
 Apabila terdeteksi kebocoran gas atau suhu melebihi batas aman, sistem akan:
 - Mengaktifkan alarm buzzer
-- Menutup aliran gas secara otomatis menggunakan servo motor
+- Menutup aliran gas secara otomatis menggunakan solenoid
 - Memberikan monitoring kondisi sistem secara real-time
 
 Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocoran gas maupun overheat pada kompor portable dapat diminimalkan.
@@ -66,7 +66,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 3. Data sensor diproses oleh Arduino.
 4. Jika terdeteksi kebocoran gas atau suhu melebihi batas aman:
    - Buzzer akan aktif sebagai alarm peringatan
-   - Servo motor akan menutup aliran gas secara otomatis
+   - Solenoid akan menutup aliran gas secara otomatis
 5. Sistem terus melakukan monitoring dengan mengirimkan data sensor secara real-time ke aplikasi yang terhubung dengan perangkat pengguna untuk menjaga keamanan pengguna.
 
 ---
