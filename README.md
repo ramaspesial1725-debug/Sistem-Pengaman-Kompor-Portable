@@ -87,6 +87,7 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ---
 
 ## Design UI/UX
+![Design UI/UX](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Design%20UI%20UX/Tampilan%20Handphone%201.png)
 
 ---
 
