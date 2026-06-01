@@ -87,8 +87,15 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ---
 
 ## Design UI/UX
+Link Figma: https://www.figma.com/design/FH6BTk9658nawBTz6TouQH/SP3S?node-id=0-1&m=dev&t=tKUMzKTZXveKOU6v-1
+
+1. Tampilan Handphone
+   
 ![Design UI/UX](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Design%20UI%20UX/Tampilan%20Handphone%201.png)
 
+2. Tampilan Dekstop
+
+   
 ---
 
 ## PPT
