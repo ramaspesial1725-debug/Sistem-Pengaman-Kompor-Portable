@@ -82,4 +82,17 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ---
 
+## Video Simulasi
+
+---
+
+## Design UI/UX
+
+---
+
+## PPT
+
+---
+
+
 
