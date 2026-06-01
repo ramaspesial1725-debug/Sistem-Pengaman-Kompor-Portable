@@ -73,5 +73,5 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ---
 
 ## Diagram Sistem
-> Tambahkan gambar diagram sistem di sini
-
+![Diagram Sistem](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Blok%20Diagram/Diagram%20System%20Architecture.jpg
+)
