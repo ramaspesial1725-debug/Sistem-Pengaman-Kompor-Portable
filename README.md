@@ -1,5 +1,6 @@
 # SP3S - Smart Portable Stove Safety System
 # Rancang Bangun Sistem Pengaman Otomatis Kebocoran Gas dan Overheat pada Kompor Portable
+![SP3S](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Assets/Background%20Proyek.png)
 
 ## Deskripsi Proyek
 Proyek ini merupakan sistem keamanan otomatis pada kompor portable yang dirancang untuk mendeteksi kebocoran gas LPG dan kondisi overheat pada tabung gas secara real-time. Sistem menggunakan sensor gas MQ-6 untuk mendeteksi kebocoran gas serta sensor DHT-11 untuk memonitor suhu pada area tabung gas.
