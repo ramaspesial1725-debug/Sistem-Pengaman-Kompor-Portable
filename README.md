@@ -104,7 +104,7 @@ Link Canva: https://canva.link/frm59njammdw9kd
 ---
 
 ## Iklan Produk
-![Iklan Produk](https://github.com/user-attachments/assets/f96aa613-9f6f-4be7-9b30-682074369cd5)
+<video src="https://github.com/user-attachments/assets/f96aa613-9f6f-4be7-9b30-682074369cd5" controls="controls" width="100%"></video
 
 ---
 
