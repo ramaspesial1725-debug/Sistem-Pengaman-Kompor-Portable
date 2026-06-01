@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-arduino-mega", "id": "mega", "top": 0.6, "left": -3.6, "attrs": {} },
+    {
+      "type": "wokwi-gas-sensor",
+      "id": "gas1",
+      "top": -176.8,
+      "left": 156.5,
+      "rotate": 90,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": -199.2,
+      "left": 289.8,
+      "attrs": { "volume": "0.1" }
+    },
+    { "type": "wokwi-led", "id": "led1", "top": -186, "left": 71, "attrs": { "color": "red" } },
+    {
+      "type": "wokwi-led",
+      "id": "led2",
+      "top": -186,
+      "left": 119,
+      "attrs": { "color": "limegreen" }
+    },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": -188.57, "left": -272, "attrs": {} },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -110.4,
+      "left": 114.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": -110.4,
+      "left": 66.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    },
+    { "type": "wokwi-dht22", "id": "dht2", "top": -210.9, "left": 397.8, "attrs": {} },
+    {
+      "type": "wokwi-relay-module",
+      "id": "relay1",
+      "top": -189,
+      "left": 445.2,
+      "rotate": 270,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [ "gas1:GND", "mega:GND.1", "black", [ "v48", "h-115.2" ] ],
+    [ "gas1:VCC", "mega:5V", "red", [ "v38.4", "h-134.4" ] ],
+    [ "gas1:AOUT", "mega:A0", "green", [ "v28.8", "h-153.6" ] ],
+
+    [ "lcd1:VSS", "mega:GND.1", "black", [ "v57.6", "h355.2" ] ],
+    [ "lcd1:VDD", "mega:5V", "red", [ "v48", "h345.6" ] ],
+    [ "lcd1:RW", "mega:GND.1", "black", [ "v38.4", "h336" ] ],
+    [ "lcd1:A", "mega:5V", "red", [ "v28.8", "h326.4" ] ],
+    [ "lcd1:K", "mega:GND.1", "black", [ "v19.2", "h316.8" ] ],
+    [ "lcd1:RS", "mega:22", "green", [ "v67.2", "h403.2", "v211.2" ] ],
+    [ "lcd1:E", "mega:23", "green", [ "v76.8", "h412.8", "v220.8" ] ],
+    [ "lcd1:D4", "mega:24", "green", [ "v86.4", "h422.4", "v230.4" ] ],
+    [ "lcd1:D5", "mega:25", "green", [ "v96", "h432", "v240" ] ],
+    [ "lcd1:D6", "mega:26", "green", [ "v105.6", "h441.6", "v249.6" ] ],
+    [ "lcd1:D7", "mega:27", "green", [ "v115.2", "h451.2", "v259.2" ] ],
+
+    [ "bz1:1", "mega:GND.1", "black", [ "v105.6", "h-105.6" ] ],
+    [ "bz1:2", "mega:8", "red", [ "v76.8", "h-144.4" ] ],
+
+    [ "led1:A", "r2:1", "green", [] ],
+    [ "led2:A", "r1:1", "green", [] ],
+    [ "r2:2", "mega:6", "green", [ "h0", "v56.4", "h105.6" ] ],
+    [ "r1:2", "mega:7", "green", [ "h9.6", "v75.6", "h38.4" ] ],
+    [ "led1:C", "mega:GND.1", "black", [ "v134.4", "h38.8" ] ],
+    [ "led2:C", "mega:GND.1", "black", [ "v134.4", "h-9.2" ] ],
+
+    [ "dht2:VCC", "mega:5V", "red", [ "v307.2", "h-9.6" ] ],
+    [ "dht2:GND", "mega:GND.1", "black", [ "v86.4", "h-326.4" ] ],
+    [ "dht2:SDA", "mega:9", "green", [ "v38.4", "h-259.1" ] ],
+
+    [ "relay1:IN", "mega:10", "green", [ "v28.8", "h-364.7" ] ],
+    [ "relay1:VCC", "mega:5V", "red", [ "v307.2", "h-338.3" ] ],
+    [ "relay1:GND", "mega:GND.2", "black", [ "v316.8", "h-338.55" ] ]
+  ],
+  "dependencies": {}
+}
