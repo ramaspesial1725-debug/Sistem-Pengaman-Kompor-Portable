@@ -89,7 +89,11 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 ## Simulasi
 
 Video Simulasi:
-https://github.com/user-attachments/assets/a738bdc7-a129-4f0d-a2c9-e6e00a37a7c1
+
+
+https://github.com/user-attachments/assets/034c19e1-1574-49c7-9b3f-ac5ec29b052b
+
+
 
 Link Wokwi:
 https://wokwi.com/projects/465650630948624385
