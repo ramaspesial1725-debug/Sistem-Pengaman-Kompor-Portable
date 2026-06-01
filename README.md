@@ -99,6 +99,7 @@ Link Figma: https://www.figma.com/design/FH6BTk9658nawBTz6TouQH/SP3S?node-id=0-1
 ---
 
 ## PPT
+Link Canva: https://canva.link/frm59njammdw9kd
 
 ---
 
