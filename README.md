@@ -115,6 +115,13 @@ Link Figma: https://www.figma.com/design/FH6BTk9658nawBTz6TouQH/SP3S?node-id=0-1
 
 <img width="1249" height="850" alt="TAMPILAN DEKSTOP FIGMA 2 PNG" src="https://github.com/user-attachments/assets/f4258d75-cedb-42cc-9c77-5996865dd0d8" />
 
+---
+
+## Web
+
+
+https://github.com/user-attachments/assets/71a77b6b-5699-4204-9043-88a83ef6eb3b
+
 
 ---
 
