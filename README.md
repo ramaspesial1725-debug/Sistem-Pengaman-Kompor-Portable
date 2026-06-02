@@ -89,6 +89,8 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 ![Design 3D](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/3D%20Design/build/Progress%20Box%20panel%20tertutup%20dan%20Selenoid%20push%20pull.png)
 
+![Design 3D](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/3D%20Design/build/Progress%20Sensor%20DHT11.png)
+
 ---
 
 ## Simulasi
