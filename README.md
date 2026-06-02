@@ -118,7 +118,7 @@ Link Figma: https://www.figma.com/design/FH6BTk9658nawBTz6TouQH/SP3S?node-id=0-1
 ---
 
 ## Web
-
+Link WEB: https://ornate-smakager-af5132.netlify.app/
 
 https://github.com/user-attachments/assets/71a77b6b-5699-4204-9043-88a83ef6eb3b
 
