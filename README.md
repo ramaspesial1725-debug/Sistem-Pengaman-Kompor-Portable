@@ -82,9 +82,11 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 <img width="1009" height="724" alt="eb10d095-7e9f-4e73-b480-ff00f63ad844" src="https://github.com/user-attachments/assets/b2de97d0-a39a-4c62-b31f-ac9981043444" />
 
+<img width="1167" height="733" alt="86adbdef-8312-491b-80f0-dbd542bb7674" src="https://github.com/user-attachments/assets/9d3cfea4-195a-48d2-848d-a2c35f21d31c" />
+
 ## Design 3D
 
-<img width="1167" height="733" alt="86adbdef-8312-491b-80f0-dbd542bb7674" src="https://github.com/user-attachments/assets/9d3cfea4-195a-48d2-848d-a2c35f21d31c" />
+
 
 ## Simulasi
 
