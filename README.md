@@ -107,9 +107,14 @@ Link Figma: https://www.figma.com/design/FH6BTk9658nawBTz6TouQH/SP3S?node-id=0-1
    
 ![Design UI/UX](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Design%20UI%20UX/Tampilan%20Handphone%201.png)
 
+
+
 2. Tampilan Dekstop
 
 ![Design UI/UX](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/Design%20UI%20UX/TAMPILAN%20DEKSTOP%20FIGMA%201.PNG.jpeg)
+
+<img width="1249" height="850" alt="TAMPILAN DEKSTOP FIGMA 2 PNG" src="https://github.com/user-attachments/assets/f4258d75-cedb-42cc-9c77-5996865dd0d8" />
+
 
 ---
 
