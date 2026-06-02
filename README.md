@@ -84,7 +84,8 @@ Dengan adanya sistem ini, diharapkan risiko kebakaran dan ledakan akibat kebocor
 
 <img width="1167" height="733" alt="86adbdef-8312-491b-80f0-dbd542bb7674" src="https://github.com/user-attachments/assets/9d3cfea4-195a-48d2-848d-a2c35f21d31c" />
 
-## Design 3D
+## Design 3Dg
+![Design 3D](https://github.com/ramaspesial1725-debug/Sistem-Pengaman-Kompor-Portable/blob/main/3D%20Design/build/Screenshot%202026-06-02%20141204.png)
 
 
 
