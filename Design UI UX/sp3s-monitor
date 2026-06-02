@@ -1,0 +1,1579 @@
+// ===== SP3S - Smart Portable Stove Safety System =====
+// script.js — Full logic for login, dashboard, simulation
+
+(function () {
+    'use strict';
+
+    // ===== DOM ELEMENTS =====
+    const loginPage = document.getElementById('loginPage');
+    const dashboardPage = document.getElementById('dashboardPage');
+    const ipInput = document.getElementById('ipInput');
+    const connectBtn = document.getElementById('connectBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const headerIP = document.getElementById('headerIP');
+    const headerTime = document.getElementById('headerTime');
+    const cardGas = document.getElementById('cardGas');
+    const gasStatusText = document.getElementById('gasStatusText');
+    const gasIconSafe = document.getElementById('gasIconSafe');
+    const gasIconWarning = document.getElementById('gasIconWarning');
+    const gasIconDanger = document.getElementById('gasIconDanger');
+    const tempValue = document.getElementById('tempValue');
+    const valveStatus = document.getElementById('valveStatus');
+    const alarmStatus = document.getElementById('alarmStatus');
+    const wifiStatus = document.getElementById('wifiStatus');
+    const historyBody = document.getElementById('historyBody');
+    const modalHistoryBody = document.getElementById('modalHistoryBody');
+    const btnViewAll = document.getElementById('btnViewAll');
+    const historyModal = document.getElementById('historyModal');
+    const modalClose = document.getElementById('modalClose');
+    const btnDisconnect = document.getElementById('btnDisconnect');
+
+    // ===== STATE =====
+    let historyData = [];
+    let lastStatus = null;
+    let simulationInterval = null;
+
+    // ===== INIT =====
+    function init() {
+        // Check if already connected
+        const savedIP = localStorage.getItem('sp3s_ip');
+        if (savedIP) {
+            showDashboard(savedIP);
+        }
+
+        // Event listeners
+        connectBtn.addEventListener('click', connectToDevice);
+        ipInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') connectToDevice();
+        });
+        ipInput.addEventListener('input', function () {
+            errorMessage.textContent = '';
+            ipInput.classList.remove('input-error');
+        });
+
+        btnViewAll.addEventListener('click', openModal);
+        modalClose.addEventListener('click', closeModal);
+        historyModal.addEventListener('click', function (e) {
+            if (e.target === historyModal) closeModal();
+        });
+
+        btnDisconnect.addEventListener('click', disconnectDevice);
+
+        // Update clock
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
+
+    // ===== IP VALIDATION =====
+    function validateIP(ip) {
+        const pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+        const match = ip.match(pattern);
+        if (!match) return false;
+        return match.slice(1).every(function (octet) {
+            const num = parseInt(octet, 10);
+            return num >= 0 && num <= 255;
+        });
+    }
+
+    // ===== CONNECT =====
+    window.connectToDevice = function () {
+        const ip = ipInput.value.trim();
+
+        if (!ip) {
+            showError('Silakan masukkan alamat IP');
+            return;
+        }
+
+        if (!validateIP(ip)) {
+            showError('Format IP tidak valid! Contoh: 192.168.1.1');
+            return;
+        }
+
+        // Save and redirect
+        localStorage.setItem('sp3s_ip', ip);
+        showDashboard(ip);
+    };
+
+    // ===== DISCONNECT =====
+    function disconnectDevice() {
+        if (!confirm('Putuskan koneksi dan kembali ke halaman login?')) return;
+
+        // Stop simulation
+        if (simulationInterval) {
+            clearInterval(simulationInterval);
+            simulationInterval = null;
+        }
+
+        // Clear saved IP
+        localStorage.removeItem('sp3s_ip');
+
+        // Reset state
+        historyData = [];
+        lastStatus = null;
+        historyBody.innerHTML = '';
+
+        // Reset gas card
+        cardGas.classList.remove('status-aman', 'status-warning', 'status-bahaya');
+        gasStatusText.classList.remove('status-aman', 'status-warning', 'status-bahaya');
+        gasStatusText.textContent = 'AMAN';
+        gasIconSafe.style.display = 'block';
+        gasIconWarning.style.display = 'none';
+        gasIconDanger.style.display = 'none';
+
+        // Reset temp
+        tempValue.textContent = '28.5°';
+
+        // Reset system
+        valveStatus.textContent = 'TERBUKA';
+        valveStatus.classList.remove('valve-closed');
+        alarmStatus.textContent = 'NONAKTIF';
+        alarmStatus.classList.remove('alarm-active');
+        alarmStatus.classList.add('alarm-off');
+
+        // Clear input
+        ipInput.value = '';
+        errorMessage.textContent = '';
+        ipInput.classList.remove('input-error');
+
+        // Switch pages
+        dashboardPage.style.display = 'none';
+        loginPage.style.display = 'flex';
+    }
+
+    function showError(msg) {
+        errorMessage.textContent = msg;
+        ipInput.classList.add('input-error');
+    }
+
+    // ===== SHOW DASHBOARD =====
+    function showDashboard(ip) {
+        loginPage.style.display = 'none';
+        dashboardPage.style.display = 'flex';
+        headerIP.textContent = ip;
+
+        // Add initial class
+        cardGas.classList.add('status-aman');
+
+        // Start simulation
+        generateData();
+        simulationInterval = setInterval(generateData, 5000);
+    }
+
+    // ===== CLOCK =====
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        headerTime.textContent = hours + '.' + minutes;
+    }
+
+    // ===== DATA SIMULATION =====
+    function generateData() {
+        // Random temperature between 25 and 80
+        const temp = (Math.random() * 55 + 25).toFixed(1);
+        const tempNum = parseFloat(temp);
+
+        // Determine status
+        let status;
+        if (tempNum < 40) {
+            status = 'AMAN';
+        } else if (tempNum <= 60) {
+            status = 'WARNING';
+        } else {
+            status = 'BAHAYA';
+        }
+
+        // Update UI
+        updateTemperature(temp);
+        updateGasStatus(status);
+        updateSystemStatus(status);
+
+        // Add to history only on status change or first run
+        if (status !== lastStatus || lastStatus === null) {
+            addHistoryEntry(status, temp);
+            lastStatus = status;
+        }
+    }
+
+    // ===== UPDATE TEMPERATURE =====
+    function updateTemperature(temp) {
+        tempValue.textContent = temp + '°';
+        // Animate the value change
+        tempValue.style.transform = 'scale(1.1)';
+        setTimeout(function () {
+            tempValue.style.transform = 'scale(1)';
+        }, 300);
+    }
+
+    // ===== UPDATE GAS STATUS =====
+    function updateGasStatus(status) {
+        // Reset
+        cardGas.classList.remove('status-aman', 'status-warning', 'status-bahaya');
+        gasStatusText.classList.remove('status-aman', 'status-warning', 'status-bahaya');
+        gasIconSafe.style.display = 'none';
+        gasIconWarning.style.display = 'none';
+        gasIconDanger.style.display = 'none';
+
+        switch (status) {
+            case 'AMAN':
+                cardGas.classList.add('status-aman');
+                gasStatusText.classList.add('status-aman');
+                gasStatusText.textContent = 'AMAN';
+                gasIconSafe.style.display = 'block';
+                break;
+            case 'WARNING':
+                cardGas.classList.add('status-warning');
+                gasStatusText.classList.add('status-warning');
+                gasStatusText.textContent = 'WARNING';
+                gasIconWarning.style.display = 'block';
+                break;
+            case 'BAHAYA':
+                cardGas.classList.add('status-bahaya');
+                gasStatusText.classList.add('status-bahaya');
+                gasStatusText.textContent = 'BAHAYA';
+                gasIconDanger.style.display = 'block';
+                break;
+        }
+    }
+
+    // ===== UPDATE SYSTEM STATUS =====
+    function updateSystemStatus(status) {
+        // Valve
+        valveStatus.classList.remove('valve-closed');
+        if (status === 'BAHAYA') {
+            valveStatus.textContent = 'TERTUTUP';
+            valveStatus.classList.add('valve-closed');
+        } else {
+            valveStatus.textContent = 'TERBUKA';
+        }
+
+        // Alarm
+        alarmStatus.classList.remove('alarm-off', 'alarm-active');
+        if (status === 'BAHAYA') {
+            alarmStatus.textContent = 'AKTIF';
+            alarmStatus.classList.add('alarm-active');
+        } else {
+            alarmStatus.textContent = 'NONAKTIF';
+            alarmStatus.classList.add('alarm-off');
+        }
+
+        // WiFi always connected in simulation
+        wifiStatus.textContent = 'TERHUBUNG';
+        wifiStatus.classList.add('wifi-connected');
+    }
+
+    // ===== HISTORY =====
+    function addHistoryEntry(status, temp) {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+
+        const entry = {
+            date: day + '/' + month,
+            time: hours + '.' + minutes,
+            status: status,
+            temp: temp + '°C'
+        };
+
+        historyData.unshift(entry);
+
+        // Update main table (show last 5)
+        renderHistoryTable();
+    }
+
+    function renderHistoryTable() {
+        const displayData = historyData.slice(0, 5);
+        historyBody.innerHTML = '';
+
+        displayData.forEach(function (entry, index) {
+            const row = document.createElement('tr');
+            row.style.animationDelay = (index * 0.05) + 's';
+
+            let badgeClass = '';
+            switch (entry.status) {
+                case 'AMAN': badgeClass = 'badge-aman'; break;
+                case 'WARNING': badgeClass = 'badge-warning'; break;
+                case 'BAHAYA': badgeClass = 'badge-bahaya'; break;
+            }
+
+            row.innerHTML =
+                '<td>' + entry.date + '</td>' +
+                '<td>' + entry.time + '</td>' +
+                '<td><span class="status-badge ' + badgeClass + '">' + entry.status + '</span></td>' +
+                '<td>' + entry.temp + '</td>';
+
+            historyBody.appendChild(row);
+        });
+    }
+
+    // ===== MODAL =====
+    function openModal() {
+        modalHistoryBody.innerHTML = '';
+
+        historyData.forEach(function (entry, index) {
+            const row = document.createElement('tr');
+            row.style.animationDelay = (index * 0.03) + 's';
+
+            let badgeClass = '';
+            switch (entry.status) {
+                case 'AMAN': badgeClass = 'badge-aman'; break;
+                case 'WARNING': badgeClass = 'badge-warning'; break;
+                case 'BAHAYA': badgeClass = 'badge-bahaya'; break;
+            }
+
+            row.innerHTML =
+                '<td>' + entry.date + '</td>' +
+                '<td>' + entry.time + '</td>' +
+                '<td><span class="status-badge ' + badgeClass + '">' + entry.status + '</span></td>' +
+                '<td>' + entry.temp + '</td>';
+
+            modalHistoryBody.appendChild(row);
+        });
+
+        historyModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        historyModal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // ===== ESC KEY TO CLOSE MODAL =====
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && historyModal.style.display === 'flex') {
+            closeModal();
+        }
+    });
+
+    // ===== START =====
+    document.addEventListener('DOMContentLoaded', init);
+
+})();
+
+/* ===== RESET & BASE ===== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --green-primary: #0B8A1E;
+    --green-dark: #076615;
+    --green-light: #E8F5E9;
+    --green-pale: #F1F8F2;
+    --white: #FFFFFF;
+    --gray-50: #FAFAFA;
+    --gray-100: #F5F5F5;
+    --gray-200: #EEEEEE;
+    --gray-300: #E0E0E0;
+    --gray-400: #BDBDBD;
+    --gray-500: #9E9E9E;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    --warning-color: #E8A817;
+    --warning-bg: #FFF8E1;
+    --danger-color: #DC2626;
+    --danger-bg: #FEF2F2;
+    --blue-color: #2196F3;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+    --shadow-xl: 0 12px 40px rgba(0,0,0,0.15);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-full: 50px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.page {
+    min-height: 100vh;
+}
+
+/* ===== LOGIN PAGE ===== */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, var(--white) 0%, var(--green-pale) 50%, var(--green-light) 100%);
+    padding: 20px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 30px;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+@keyframes blinkDanger {
+    0%, 100% {
+        background: var(--danger-bg);
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+    50% {
+        background: rgba(220, 38, 38, 0.15);
+        box-shadow: 0 0 20px 5px rgba(220, 38, 38, 0.2);
+    }
+}
+
+@keyframes slideInRow {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Logo Section */
+.login-logo-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.logo-icon-wrapper {
+    flex-shrink: 0;
+}
+
+.logo-shield {
+    width: 72px;
+    height: 82px;
+    filter: drop-shadow(0 4px 8px rgba(11, 138, 30, 0.3));
+    transition: var(--transition);
+}
+
+.logo-shield:hover {
+    filter: drop-shadow(0 6px 16px rgba(11, 138, 30, 0.4));
+    transform: scale(1.05);
+}
+
+.logo-text-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--green-primary);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.logo-subtitle {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--green-primary);
+    letter-spacing: 1.5px;
+    line-height: 1.3;
+    margin-top: 2px;
+}
+
+.tagline {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    font-style: italic;
+    margin-bottom: 30px;
+    font-weight: 400;
+}
+
+/* Stove Image */
+.stove-image-wrapper {
+    width: 220px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.stove-image-wrapper:hover {
+    transform: scale(1.03);
+}
+
+.stove-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Login Form */
+.login-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.input-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-full);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--gray-800);
+    background: var(--white);
+    outline: none;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.input-wrapper input::placeholder {
+    color: var(--gray-400);
+    font-weight: 400;
+}
+
+.input-wrapper input:focus {
+    border-color: var(--green-primary);
+    box-shadow: 0 0 0 4px rgba(11, 138, 30, 0.12);
+}
+
+.input-wrapper input.input-error {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+    animation: shakeError 0.5s ease;
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.8rem;
+    font-weight: 500;
+    min-height: 20px;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.btn-connect {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-full);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(11, 138, 30, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-connect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-connect:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(11, 138, 30, 0.45);
+}
+
+.btn-connect:hover::before {
+    left: 100%;
+}
+
+.btn-connect:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(11, 138, 30, 0.3);
+}
+
+/* ===== DASHBOARD PAGE ===== */
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--gray-100);
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Header */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+    color: var(--white);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(11, 138, 30, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-logo-icon svg {
+    width: 36px;
+    height: 40px;
+}
+
+.header-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-status-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+}
+
+.header-status-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+}
+
+.header-ip {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+}
+
+.header-time-badge {
+    background: var(--white);
+    color: var(--green-primary);
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-disconnect {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.btn-disconnect svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-disconnect:hover {
+    background: rgba(220, 38, 38, 0.85);
+    border-color: rgba(220, 38, 38, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
+}
+
+.btn-disconnect:active {
+    transform: scale(0.95);
+}
+
+/* Dashboard Content */
+.dashboard-content {
+    flex: 1;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Cards */
+.card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 1px solid var(--gray-200);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin-bottom: 12px;
+    letter-spacing: 0.3px;
+}
+
+/* Top Row Cards */
+.cards-row-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Gas Status Card */
+.card-gas {
+    text-align: center;
+    transition: var(--transition);
+}
+
+.card-gas.status-aman {
+    border-left: 4px solid var(--green-primary);
+}
+
+.card-gas.status-warning {
+    border-left: 4px solid var(--warning-color);
+    background: var(--warning-bg);
+}
+
+.card-gas.status-bahaya {
+    border-left: 4px solid var(--danger-color);
+    animation: blinkDanger 1s infinite;
+}
+
+.card-gas-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.gas-icon-wrapper {
+    width: 60px;
+    height: 60px;
+}
+
+.gas-icon {
+    width: 100%;
+    height: 100%;
+}
+
+.gas-status-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--green-primary);
+    letter-spacing: 2px;
+}
+
+.gas-status-text.status-aman {
+    color: var(--green-primary);
+}
+
+.gas-status-text.status-warning {
+    color: var(--warning-color);
+}
+
+.gas-status-text.status-bahaya {
+    color: var(--danger-color);
+}
+
+/* Temperature Card */
+.card-temp {
+    text-align: center;
+}
+
+.card-temp-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.temp-icon-wrapper {
+    width: 36px;
+    height: 64px;
+}
+
+.temp-icon {
+    width: 100%;
+    height: 100%;
+}
+
+.temp-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--gray-800);
+    line-height: 1;
+}
+
+/* System Status Card */
+.card-system {
+    padding: 20px;
+}
+
+.system-indicators {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.system-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.system-item:hover {
+    background: var(--gray-50);
+}
+
+.system-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.system-icon {
+    width: 100%;
+    height: 100%;
+}
+
+.system-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    letter-spacing: 1px;
+}
+
+.system-value {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--green-primary);
+    letter-spacing: 0.5px;
+}
+
+.system-value.alarm-off {
+    color: var(--gray-500);
+}
+
+.system-value.alarm-active {
+    color: var(--danger-color);
+}
+
+.system-value.valve-closed {
+    color: var(--danger-color);
+}
+
+.system-value.wifi-connected {
+    color: var(--blue-color);
+}
+
+.system-value.wifi-disconnected {
+    color: var(--gray-500);
+}
+
+/* History Card */
+.card-history {
+    padding: 20px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.history-header .card-title {
+    margin-bottom: 0;
+}
+
+.btn-view-all {
+    background: none;
+    border: none;
+    color: var(--green-primary);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.btn-view-all:hover {
+    background: var(--green-light);
+}
+
+.history-table-wrapper {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+}
+
+.history-table thead th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-align: left;
+    padding: 6px 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.history-table tbody tr {
+    background: var(--gray-50);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    animation: slideInRow 0.4s ease-out;
+}
+
+.history-table tbody tr:hover {
+    background: var(--gray-200);
+    transform: scale(1.01);
+}
+
+.history-table tbody td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.history-table tbody tr td:first-child {
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.history-table tbody tr td:last-child {
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.status-badge {
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.status-badge.badge-aman {
+    background: var(--green-light);
+    color: var(--green-primary);
+}
+
+.status-badge.badge-warning {
+    background: var(--warning-bg);
+    color: var(--warning-color);
+}
+
+.status-badge.badge-bahaya {
+    background: var(--danger-bg);
+    color: var(--danger-color);
+}
+
+/* Footer */
+.dashboard-footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 0.72rem;
+    color: var(--gray-500);
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+    color: var(--white);
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: var(--white);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: rgba(255,255,255,0.35);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 20px 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-table {
+    border-spacing: 0 4px;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 14px 18px;
+    }
+
+    .header-title {
+        font-size: 1.3rem;
+    }
+
+    .dashboard-content {
+        padding: 16px;
+        gap: 14px;
+    }
+
+    .cards-row-top {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .system-indicators {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 30px 20px;
+    }
+
+    .logo-shield {
+        width: 56px;
+        height: 64px;
+    }
+
+    .logo-title {
+        font-size: 2.4rem;
+    }
+
+    .logo-subtitle {
+        font-size: 0.6rem;
+    }
+
+    .tagline {
+        font-size: 0.85rem;
+    }
+
+    .stove-image-wrapper {
+        width: 180px;
+        height: 150px;
+    }
+
+    .dashboard-header {
+        padding: 12px 16px;
+    }
+
+    .header-title {
+        font-size: 1.2rem;
+    }
+
+    .header-time-badge {
+        padding: 4px 10px;
+        font-size: 0.72rem;
+    }
+
+    .dashboard-content {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .cards-row-top {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .gas-status-text {
+        font-size: 1.3rem;
+    }
+
+    .temp-value {
+        font-size: 1.8rem;
+    }
+
+    .system-indicators {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .system-icon-wrapper {
+        width: 36px;
+        height: 36px;
+    }
+
+    .system-label {
+        font-size: 0.62rem;
+    }
+
+    .system-value {
+        font-size: 0.64rem;
+    }
+
+    .history-table thead th {
+        font-size: 0.68rem;
+        padding: 4px 8px;
+    }
+
+    .history-table tbody td {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+
+    .btn-connect {
+        padding: 14px;
+        font-size: 1rem;
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 901px) {
+    .dashboard-content {
+        padding: 24px 30px;
+    }
+
+    .cards-row-top {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+/* ===== FOCUS STYLES ===== */
+:focus-visible {
+    outline: 3px solid var(--green-primary);
+    outline-offset: 2px;
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SP3S - Smart Portable Stove Safety System Monitoring Dashboard. Monitor gas status, temperature, valve, and alarm in real-time.">
+    <title>SP3S - Smart Portable Stove Safety System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ============ LOGIN PAGE ============ -->
+    <div id="loginPage" class="page login-page">
+        <div class="login-container">
+            <!-- Logo Section -->
+            <div class="login-logo-section">
+                <div class="logo-icon-wrapper">
+                    <svg class="logo-shield" viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M40 2L6 18V42C6 64 20 82 40 88C60 82 74 64 74 42V18L40 2Z" fill="#0B8A1E" stroke="#0B8A1E" stroke-width="2"/>
+                        <path d="M40 20C40 20 30 30 30 42C30 50 34 56 40 60C46 56 50 50 50 42C50 30 40 20 40 20Z" fill="#FF6B00" opacity="0.9"/>
+                        <path d="M40 28C40 28 35 35 35 43C35 48 37 52 40 54C43 52 45 48 45 43C45 35 40 28 40 28Z" fill="#FFD600" opacity="0.9"/>
+                    </svg>
+                </div>
+                <div class="logo-text-group">
+                    <h1 class="logo-title">SP3S</h1>
+                    <p class="logo-subtitle">SMART PORTABLE STOVE<br>SAFETY SYSTEM</p>
+                </div>
+            </div>
+
+            <!-- Tagline -->
+            <p class="tagline">"Smart Detection, Smart Protection"</p>
+
+            <!-- Stove Image -->
+            <div class="stove-image-wrapper">
+                <svg class="stove-image" viewBox="0 0 280 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Stove Body -->
+                    <rect x="30" y="80" width="220" height="110" rx="12" fill="#2D2D2D" stroke="#1a1a1a" stroke-width="2"/>
+                    <rect x="35" y="85" width="210" height="100" rx="10" fill="#3a3a3a"/>
+                    <!-- Top Panel -->
+                    <rect x="30" y="70" width="220" height="20" rx="6" fill="#404040" stroke="#333" stroke-width="1"/>
+                    <!-- Burner Ring Outer -->
+                    <circle cx="140" cy="130" r="45" fill="#4a4a4a" stroke="#555" stroke-width="2"/>
+                    <circle cx="140" cy="130" r="38" fill="#3d3d3d" stroke="#555" stroke-width="1"/>
+                    <!-- Burner Grate -->
+                    <line x1="110" y1="130" x2="170" y2="130" stroke="#666" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="140" y1="100" x2="140" y2="160" stroke="#666" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="118" y1="108" x2="162" y2="152" stroke="#666" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="162" y1="108" x2="118" y2="152" stroke="#666" stroke-width="3" stroke-linecap="round"/>
+                    <!-- Center Burner -->
+                    <circle cx="140" cy="130" r="12" fill="#555" stroke="#666" stroke-width="1"/>
+                    <circle cx="140" cy="130" r="6" fill="#444"/>
+                    <!-- Blue Flame -->
+                    <path d="M132 125C132 125 136 115 140 112C144 115 148 125 148 125" fill="#1E88E5" opacity="0.7"/>
+                    <path d="M135 127C135 127 138 119 140 117C142 119 145 127 145 127" fill="#42A5F5" opacity="0.8"/>
+                    <path d="M137 128C137 128 139 122 140 120C141 122 143 128 143 128" fill="#64B5F6" opacity="0.9"/>
+                    <!-- Drip Tray -->
+                    <rect x="50" y="175" width="180" height="8" rx="3" fill="#C0C0C0" stroke="#999" stroke-width="1"/>
+                    <!-- Knob -->
+                    <circle cx="240" cy="135" r="12" fill="#E53935" stroke="#C62828" stroke-width="2"/>
+                    <circle cx="240" cy="135" r="4" fill="#C62828"/>
+                    <line x1="240" y1="127" x2="240" y2="131" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Gas Canister Slot -->
+                    <rect x="30" y="155" width="60" height="25" rx="4" fill="#353535" stroke="#444" stroke-width="1"/>
+                    <rect x="35" y="160" width="50" height="15" rx="3" fill="#2a2a2a"/>
+                    <!-- SP3S Label -->
+                    <rect x="100" y="165" width="50" height="16" rx="4" fill="#0B8A1E"/>
+                    <text x="125" y="177" text-anchor="middle" fill="white" font-family="Poppins, sans-serif" font-size="9" font-weight="700">SP3S</text>
+                    <!-- Feet -->
+                    <rect x="50" y="185" width="20" height="6" rx="3" fill="#999"/>
+                    <rect x="210" y="185" width="20" height="6" rx="3" fill="#999"/>
+                </svg>
+            </div>
+
+            <!-- IP Input -->
+            <div class="login-form">
+                <div class="input-wrapper">
+                    <input type="text" id="ipInput" placeholder="Masukkan Alamat IP" autocomplete="off" spellcheck="false">
+                </div>
+                <p id="errorMessage" class="error-message"></p>
+                <button id="connectBtn" class="btn-connect" onclick="connectToDevice()">
+                    SAMBUNGKAN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ DASHBOARD PAGE ============ -->
+    <div id="dashboardPage" class="page dashboard-page" style="display:none;">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <div class="header-logo-icon">
+                    <svg viewBox="0 0 40 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 1L3 9V21C3 32 10 41 20 44C30 41 37 32 37 21V9L20 1Z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.5"/>
+                        <path d="M20 10C20 10 15 15 15 21C15 25 17 28 20 30C23 28 25 25 25 21C25 15 20 10 20 10Z" fill="#FF6B00" opacity="0.9"/>
+                        <path d="M20 14C20 14 17.5 17.5 17.5 21.5C17.5 24 18.5 26 20 27C21.5 26 22.5 24 22.5 21.5C22.5 17.5 20 14 20 14Z" fill="#FFD600" opacity="0.9"/>
+                    </svg>
+                </div>
+                <span class="header-title">SP3S</span>
+            </div>
+            <div class="header-right">
+                <div class="header-status-info">
+                    <span class="header-status-label">Terhubung</span>
+                    <span class="header-ip" id="headerIP">192.168.1.1</span>
+                </div>
+                <div class="header-time-badge" id="headerTime">10.55</div>
+                <button class="btn-disconnect" id="btnDisconnect" title="Ganti IP / Putuskan Koneksi">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="dashboard-content">
+            <!-- Status Cards Row -->
+            <div class="cards-row-top">
+                <!-- Gas Status Card -->
+                <div class="card card-gas" id="cardGas">
+                    <h2 class="card-title">Status Gas</h2>
+                    <div class="card-gas-content">
+                        <div class="gas-icon-wrapper" id="gasIconWrapper">
+                            <svg id="gasIconSafe" class="gas-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="32" cy="32" r="30" fill="#0B8A1E" fill-opacity="0.1" stroke="#0B8A1E" stroke-width="2.5"/>
+                                <path d="M20 33L28 41L44 25" stroke="#0B8A1E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <svg id="gasIconWarning" class="gas-icon" viewBox="0 0 64 64" fill="none" style="display:none;" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="32" cy="32" r="30" fill="#E8A817" fill-opacity="0.1" stroke="#E8A817" stroke-width="2.5"/>
+                                <path d="M32 18V38" stroke="#E8A817" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="32" cy="46" r="3" fill="#E8A817"/>
+                            </svg>
+                            <svg id="gasIconDanger" class="gas-icon" viewBox="0 0 64 64" fill="none" style="display:none;" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="32" cy="32" r="30" fill="#DC2626" fill-opacity="0.1" stroke="#DC2626" stroke-width="2.5"/>
+                                <path d="M22 22L42 42M42 22L22 42" stroke="#DC2626" stroke-width="4" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span class="gas-status-text" id="gasStatusText">AMAN</span>
+                    </div>
+                </div>
+
+                <!-- Temperature Card -->
+                <div class="card card-temp">
+                    <h2 class="card-title">Suhu Area</h2>
+                    <div class="card-temp-content">
+                        <div class="temp-icon-wrapper">
+                            <svg class="temp-icon" viewBox="0 0 40 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="13" y="4" width="14" height="50" rx="7" fill="#E3F0FF" stroke="#2196F3" stroke-width="2"/>
+                                <circle cx="20" cy="62" r="14" fill="#E3F0FF" stroke="#2196F3" stroke-width="2"/>
+                                <circle cx="20" cy="62" r="8" fill="#DC2626"/>
+                                <rect x="17" y="30" width="6" height="26" rx="3" fill="#DC2626"/>
+                                <!-- Tick marks -->
+                                <line x1="28" y1="15" x2="33" y2="15" stroke="#2196F3" stroke-width="1.5"/>
+                                <line x1="28" y1="22" x2="33" y2="22" stroke="#2196F3" stroke-width="1.5"/>
+                                <line x1="28" y1="29" x2="33" y2="29" stroke="#2196F3" stroke-width="1.5"/>
+                                <line x1="28" y1="36" x2="33" y2="36" stroke="#2196F3" stroke-width="1.5"/>
+                                <line x1="28" y1="43" x2="33" y2="43" stroke="#2196F3" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <span class="temp-value" id="tempValue">28.5°</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="card card-system" id="cardSystem">
+                <h2 class="card-title">Status Sistem</h2>
+                <div class="system-indicators">
+                    <!-- Valve -->
+                    <div class="system-item" id="valveItem">
+                        <div class="system-icon-wrapper valve-icon-wrap">
+                            <svg class="system-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 4L6 12V24C6 36 14 44 24 46C34 44 42 36 42 24V12L24 4Z" fill="#0B8A1E" fill-opacity="0.15" stroke="#0B8A1E" stroke-width="2"/>
+                                <path d="M16 24L22 30L32 20" stroke="#0B8A1E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="system-label">VALVE</span>
+                        <span class="system-value" id="valveStatus">TERBUKA</span>
+                    </div>
+
+                    <!-- Alarm -->
+                    <div class="system-item" id="alarmItem">
+                        <div class="system-icon-wrapper alarm-icon-wrap">
+                            <svg class="system-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 6C18 6 12 10 12 18V28L8 34H40L36 28V18C36 10 30 6 24 6Z" fill="#DC2626" fill-opacity="0.15" stroke="#DC2626" stroke-width="2"/>
+                                <circle cx="24" cy="40" r="4" fill="#DC2626" fill-opacity="0.3" stroke="#DC2626" stroke-width="1.5"/>
+                                <!-- Sound waves -->
+                                <path d="M6 20C4 22 4 26 6 28" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+                                <path d="M42 20C44 22 44 26 42 28" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+                            </svg>
+                        </div>
+                        <span class="system-label">ALARM</span>
+                        <span class="system-value alarm-off" id="alarmStatus">NONAKTIF</span>
+                    </div>
+
+                    <!-- WiFi -->
+                    <div class="system-item" id="wifiItem">
+                        <div class="system-icon-wrapper wifi-icon-wrap">
+                            <svg class="system-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 18C12 12 18 8 24 8C30 8 36 12 42 18" stroke="#2196F3" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M12 24C16 20 20 17 24 17C28 17 32 20 36 24" stroke="#2196F3" stroke-width="3" stroke-linecap="round"/>
+                                <path d="M18 30C20 28 22 26 24 26C26 26 28 28 30 30" stroke="#2196F3" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="24" cy="36" r="3" fill="#2196F3"/>
+                            </svg>
+                        </div>
+                        <span class="system-label">WIFI</span>
+                        <span class="system-value wifi-connected" id="wifiStatus">TERHUBUNG</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="card card-history">
+                <div class="history-header">
+                    <h2 class="card-title">Riwayat Terbaru</h2>
+                    <button class="btn-view-all" id="btnViewAll">Lihat Semua</button>
+                </div>
+                <div class="history-table-wrapper">
+                    <table class="history-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Jam</th>
+                                <th>Status</th>
+                                <th>Suhu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- Rows populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>&copy; 2026 SP3S - Smart Portable Stove Safety System</p>
+        </footer>
+    </div>
+
+    <!-- Modal for History -->
+    <div id="historyModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Riwayat Lengkap</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="history-table modal-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jam</th>
+                            <th>Status</th>
+                            <th>Suhu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalHistoryBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
