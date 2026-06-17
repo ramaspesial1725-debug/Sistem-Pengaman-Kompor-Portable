@@ -142,4 +142,7 @@ Link Canva: https://canva.link/frm59njammdw9kd
 
 ---
 
+## Video Presentasi
+Link Drive: https://drive.google.com/file/d/18ej8OLRUNi-VsCiIOofKczHkPw0CBNzV/view?usp=sharing
+
 
